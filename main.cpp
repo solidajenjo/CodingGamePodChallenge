@@ -23,6 +23,9 @@ struct CheckPoint
  * the standard input according to the problem statement.
  **/
 
+constexpr int horizontalCellSize = 16000 / 32;
+constexpr int verticalCellSize = 9000 / 32;
+
 int main()
 {
 
@@ -31,6 +34,8 @@ int main()
     CheckPoint* firstCheckPoint { nullptr };
     CheckPoint* lastCheckPointInserted { nullptr };
     bool firstLapCompleted = false;
+
+    int xCells = 0, yCells = 0;
 
     while (1) {
         int x;
@@ -43,7 +48,7 @@ int main()
         int opponent_x;
         int opponent_y;
         cin >> opponent_x >> opponent_y; cin.ignore();
-
+        
         if (firstCheckPoint != lastCheckPointInserted && !firstLapCompleted){
             firstLapCompleted = (firstCheckPoint->x == next_checkpoint_x && firstCheckPoint->y == next_checkpoint_y);
         }
@@ -52,38 +57,31 @@ int main()
         }
         else{
             cerr << "First lap\n";
-            if (!firstCheckPoint){ //Create the checkpoint list head
-                firstCheckPoint = new CheckPoint(next_checkpoint_x, next_checkpoint_y);
-                lastCheckPointInserted = firstCheckPoint;
-            }
-            else{
+            int xCellIndex = 1 << (next_checkpoint_x / horizontalCellSize);
+            int yCellIndex = 1 << (next_checkpoint_y / verticalCellSize);
+                                                
+            bool isCheckPointRegistered = (xCells & xCellIndex) && (yCells & yCellIndex); //Check if already registered
+            
+            cerr << "isCheckPointRegistered " << isCheckPointRegistered << endl;
+            if (!isCheckPointRegistered){ // Register a new checkPoint
                 
-                //Try to find the checkpoint on the list
-                CheckPoint* c = firstCheckPoint;
-                bool isCheckPointRegistered = false; // Avoid to introduce the first twice
-                
-                while(c->nextCheckPoint){   
-                    /*                             
-                    if ((*c->nextCheckPoint).x == (*firstCheckPoint).x && (*c->nextCheckPoint).y == (*firstCheckPoint).y){
-                        firstLapCompleted = true;
-                        c->nextCheckPoint->nextCheckPoint = firstCheckPoint; // Make the list circular to loop through
-                    }
-                    */                                           
-                    if ((*c->nextCheckPoint).x == next_checkpoint_x && (*c->nextCheckPoint).y == next_checkpoint_y){
-                        isCheckPointRegistered = true;
-                    }                
-                    c = c->nextCheckPoint;
-                }            
-                cerr << "isCheckPointRegistered " << isCheckPointRegistered << endl;
-                if (!isCheckPointRegistered){ // Register a new checkPoint
+                if (lastCheckPointInserted){
                     lastCheckPointInserted->nextCheckPoint = new CheckPoint(next_checkpoint_x, next_checkpoint_y);
                     lastCheckPointInserted = lastCheckPointInserted->nextCheckPoint;
-                }                       
-            }            
+                }
+                else{
+                    firstCheckPoint = new CheckPoint(next_checkpoint_x, next_checkpoint_y);
+                    lastCheckPointInserted = firstCheckPoint;
+                }
+
+                xCells = xCells | xCellIndex;
+                yCells = yCells | yCellIndex;
+            }                       
+                       
         }
 
         CheckPoint* c = firstCheckPoint;        
-        while(c->nextCheckPoint){
+        while(c){
             cerr <<"CheckPoint: x-> " << c->x << " y-> " << c->y << endl;
             c = c->nextCheckPoint;
         }
