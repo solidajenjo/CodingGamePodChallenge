@@ -15,7 +15,7 @@ struct CheckPoint
     int x , y;
     int checkPointNum = 0;
     CheckPoint* nextCheckPoint { nullptr };
-
+    bool isTheLast = false;
 };
 
 /**
@@ -33,6 +33,7 @@ int main()
 
     CheckPoint* firstCheckPoint { nullptr };
     CheckPoint* lastCheckPointInserted { nullptr };
+    CheckPoint* currentCheckPointTarget { nullptr };
     bool firstLapCompleted = false;
 
     int xCells = 0, yCells = 0;
@@ -50,10 +51,25 @@ int main()
         cin >> opponent_x >> opponent_y; cin.ignore();
         
         if (firstCheckPoint != lastCheckPointInserted && !firstLapCompleted){
-            firstLapCompleted = (firstCheckPoint->x == next_checkpoint_x && firstCheckPoint->y == next_checkpoint_y);
+            if ((firstLapCompleted = (firstCheckPoint->x == next_checkpoint_x && firstCheckPoint->y == next_checkpoint_y)))
+            {
+                lastCheckPointInserted->isTheLast = firstLapCompleted;
+                currentCheckPointTarget = firstCheckPoint;
+                lastCheckPointInserted->nextCheckPoint = firstCheckPoint;
+            }
         }
         if (firstLapCompleted){
             cerr << "First lap completed!!\n";
+
+
+            int thrust = 100;
+            if (next_checkpoint_dist < 2000 && currentCheckPointTarget->x == next_checkpoint_x && currentCheckPointTarget->y == next_checkpoint_y)
+            {                
+                currentCheckPointTarget = currentCheckPointTarget->nextCheckPoint;
+                thrust = 0;
+            }
+            cerr <<"CheckPoint: x-> " << currentCheckPointTarget->x << " y-> " << currentCheckPointTarget->y << endl;
+            cout << currentCheckPointTarget->x << " " << currentCheckPointTarget->y << " " << thrust << endl;
         }
         else{
             cerr << "First lap\n";
@@ -78,30 +94,29 @@ int main()
                 yCells = yCells | yCellIndex;
             }                       
                        
+            CheckPoint* c = firstCheckPoint;        
+            while(c){
+                cerr <<"CheckPoint: x-> " << c->x << " y-> " << c->y << endl;
+                c = c->nextCheckPoint;
+            }
+            int absCheckpointAngle = abs(next_checkpoint_angle);
+
+            int thrust;
+            if (next_checkpoint_dist < 1500)
+                thrust = 20;
+            else 
+                thrust = 100 - clamp(absCheckpointAngle, 0, 180);
+
+            thrust = clamp(thrust, 20, 100);
+
+            cerr << "Thrust: " << thrust << endl;
+            cout << next_checkpoint_x << " " << next_checkpoint_y << " " << thrust << endl;
         }
-
-        CheckPoint* c = firstCheckPoint;        
-        while(c){
-            cerr <<"CheckPoint: x-> " << c->x << " y-> " << c->y << endl;
-            c = c->nextCheckPoint;
-        }
-        int absCheckpointAngle = abs(next_checkpoint_angle);
-
-        int thrust;
-        if (next_checkpoint_dist < 1500)
-            thrust = 20;
-        else 
-            thrust = 100 - clamp(absCheckpointAngle, 0, 180);
-
-        thrust = clamp(thrust, 20, 100);
-
-        cerr << "Thrust: " << thrust << endl;
-        cout << next_checkpoint_x << " " << next_checkpoint_y << " " << thrust << endl;
     }
      CheckPoint* c = firstCheckPoint;        
     
-    while(c->nextCheckPoint){ //Clean
-        CheckPoint* next = c->nextCheckPoint;
+    while(c && c->nextCheckPoint){ //Clean
+        CheckPoint* next = c->isTheLast ? nullptr : c->nextCheckPoint;
         delete c;
         c = next;
     }
