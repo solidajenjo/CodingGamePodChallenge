@@ -17,8 +17,8 @@ Once I learnt the route I started using it, when the pod is close to the checkpo
 For the next iterations I want to improve the first lap code, I'm still using the Wood 2 simple approach, and make a good use of the boost if the circunstances to use it are good enough
 Bronze league
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 I've spent like 8h here testing a lot of approaches until I found something to be happy with.
-I've improved a lot the bot and now it performs way better than before. At this level I had a lot of problems with collisions. I've implemented a safety check on the last laps to figure out if a collision get the bot out of route or miss the checkpoint. As well implemented a trajectory prediction based on the bot velocity, I throw a ray in the velocity direction from the bot and if this ray doesnt collide with the checkopoint I apply a negative force to reorient the bot to the checkpoint.![Rank1 of bronze](https://user-images.githubusercontent.com/12461772/146347959-0da94f74-cbf6-4bf7-8e4b-a6f4541ebd33.PNG)
+I've improved a lot the bot and now it performs way better than before. At this level I had a lot of problems with collisions. I've implemented a safety check on the last laps to figure out if a collision get the bot out of route or miss the checkpoint. As well implemented a trajectory prediction based on the bot velocity, I throw a ray in the velocity direction from the bot and if this ray doesnt collide with the checkopoint I apply a negative force to reorient the bot to the checkpoint.
+![Rank1 of bronze](https://user-images.githubusercontent.com/12461772/146347959-0da94f74-cbf6-4bf7-8e4b-a6f4541ebd33.PNG)
 
 At this moment I'm the first of the bronze league but I think I should wait for the promotion a while.
