@@ -25,3 +25,12 @@ I've improved a lot the bot and now it performs way better than before. At this 
 
 
 At this moment I'm the first of the bronze league but I think I should wait for the promotion a while.
+
+Silver league
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+I've just been promoted to silver!! I tested my previous bot on this league and got the first place without changing the code.
+
+![Rank1 of silver](https://user-images.githubusercontent.com/12461772/146356903-f3d3fa3f-75bb-4d8a-adaf-5bccd78e3de0.PNG)
+
+I'm gonna wait for the promotion to the next league before starting to add the shield new feature.
+
