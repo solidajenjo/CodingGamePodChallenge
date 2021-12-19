@@ -34,3 +34,17 @@ I've just been promoted to silver!! I tested my previous bot on this league and 
 
 I'm gonna wait for the promotion to the next league before starting to add the shield new feature.
 
+Gold league
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Time spent here 6h.
+
+In this league I had a lot of problems with the collisions. I tried to make use of the shield the best I could but sometimes my own pods were colliding and causing out of route 
+issues. I've been trying to balance between be aggressive or conservative but the results were different depending on the game board.
+In this last version, however, I think I've made a quite good bots and finally got to 1233 position.
+
+This last version is a improvement of the other versions but in this league I had all the information at the begining of the race and then I could start to advance turns at the firs lap. I tried to approach better to the checkpoints aiming at a point displaced based on the next checkpoint instead aiming to the center of the current checkpoint. In this last version as well I implemented a wolf/hare group behavior. If one of the pods is far beyond the others it became a wolf and stops going to the checkpoints to try to hit the best of the enemy pods to stop it. The other is the Hare and tries to win the race. At the begining both pods are hares.
+
+Further improvements
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+It will be cool to explore the genetic algorithm approach but I didn't find out how to do it, for that it will be necessary to get access to the game code and run a lot of races  and store the results to breed better pods by mutation, cross and random generation.
+Another cool thing can be trace the optimal route using splines but I've discarded this because in the web it can be hard to debug, I'll need to draw a lot of information on the screen to check if its working as expected.
