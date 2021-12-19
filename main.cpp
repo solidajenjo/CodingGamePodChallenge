@@ -13,6 +13,7 @@ constexpr float podCollisionRadius = 1000.f;
 constexpr float halfScreenWidth = 8000.f;
 constexpr float halfScreenHeight = 4500.f;
 constexpr int shieldCoolDown = 5;
+constexpr int boostCoolDown = 5;
 
 struct CheckPoint
 {    
@@ -64,7 +65,7 @@ struct Pod{
     }
 
     void CalculateThrust(){        
-        thrust = (nextCheckpointDist < (velocity.length  * 8) || angleToCheckpoint > M_PI_2) ? 50 : 100;
+        thrust = (nextCheckpointDist < (velocity.length  * 8) || angleToCheckpoint > M_PI_2) ? 40 : 100;
     } 
 
     //Traces a line in the velocity direction and checks if the next point intersects this line
@@ -101,65 +102,65 @@ struct Pod{
         float theta = angle * M_PI / 180.f;
         float dx = cos(theta);
         float dy = sin(theta);
-        Vec directionNormalized = Vec(dx, dy);
-        directionNormalized.Normalize();
+        direction = Vec(dx, dy);
+        direction.Normalize();
         nextCheckpointDist = nextCheckpointVec.length;      
-        cerr << id << "|" << "Direction norm: " << directionNormalized.x << " - " << directionNormalized.y << endl;
-
+        cerr << id << "|" << "Direction norm: " << direction.x << " - " << direction.y << endl;
+        isUsingBoost = false;
         //Velocity and nextcheckpointVec are normalized so don't need to divide
-        angleToCheckpoint = acos(directionNormalized.x * nextCheckpointVec.x + directionNormalized.y * nextCheckpointVec.y);//In radians!!
+        angleToCheckpoint = acos(direction.x * nextCheckpointVec.x + direction.y * nextCheckpointVec.y);//In radians!!
     }
   
 
-    void Update(const vector<CheckPoint>& checkpoints, const Pod& palPod, const Pod& e1, const Pod& e2){
+    void Update(const vector<CheckPoint>& checkpoints, Pod& palPod, const Pod& e1, const Pod& e2){
+
+        UpdatePodPhysics(checkpoints);
 
         const CheckPoint* cp = &checkpoints[nextCheckpointId];
-        //If is the last pod and his pal is not a wolf  turns into wolf to try to disturb the enemy pods
-        isWolf = palPod.nextCheckpointId > nextCheckpointId && e1.nextCheckpointId > nextCheckpointId && e2.nextCheckpointId > nextCheckpointId;
-        if (isWolf) //Is a wolf
-        {    
+        
+        cerr << id << "|" << !palPod.isAWolf << (palPod.checkPointCount > checkPointCount) << (e1.checkPointCount > checkPointCount) << (e2.checkPointCount > checkPointCount) << endl;
+        //If is the last pod and his pal is not a wolf  turns into wolf to try to disturb the enemy pods       
+        isAWolf = (!palPod.isAWolf) && (palPod.checkPointCount > checkPointCount) && (e1.checkPointCount > checkPointCount) && (e2.checkPointCount > checkPointCount); 
+
+        if (isAWolf) //Is a wolf
+        {               
+            isAWolf = true; 
             cerr << id << "|" << " is a Wolf" << endl;        
-            float theta = angle * M_PI / 180.f;
-            float dx = cos(theta);
-            float dy = sin(theta);
-            Vec directionNormalized = Vec(dx, dy);
-            directionNormalized.Normalize();
+
             Vec targetVec;
             Vec targetNextLoc;
             if (e1.checkPointCount > e2.checkPointCount){
-                targetVec = Vec(x - e1.x, y - e1.y);
+                targetVec = Vec(x + vx - e1.x + e1.vx, y + vy - e1.y + e1.vy);
                 targetNextLoc = Vec(e1.x + e1.vx * 8, e1.y + e1.vy * 8);
             }
             else if (e1.checkPointCount < e2.checkPointCount){
-                targetVec = Vec(x - e2.x, y - e2.y);
+                targetVec = Vec(x + vx - e2.x + e2.vx, y + vy - e2.y + e2.vy);
                 targetNextLoc = Vec(e2.x + e2.vx * 8, e2.y + e2.vy * 8);
             }
             else if (e1.nextCheckpointDist < e2.nextCheckpointDist){
-                targetVec = Vec(x - e1.x, y - e1.y);
+                targetVec = Vec(x + vx - e1.x + e1.vx, y + vy - e1.y + e1.vy);
                 targetNextLoc = Vec(e1.x + e1.vx * 8, e1.y + e1.vy * 8);
             }
             else{
-                targetVec = Vec(x - e2.x, y - e2.y);
+                targetVec = Vec(x + vx - e2.x + e2.vx, y + vx - e2.y + e2.vy);
                 targetNextLoc = Vec(e2.x + e2.vx * 8, e2.y + e2.vy * 8);
             }
             targetVec.Normalize();
-            float angleToTarget = acos(directionNormalized.x * targetVec.x + directionNormalized.y * targetVec.y);//In radians!!
+            float angleToTarget = acos(direction.x * targetVec.x + direction.y * targetVec.y);//In radians!!
 
-            cerr << id << "|" << " Target distance: " << targetVec.length;
-            
-            if (targetVec.length > 400)
+            cerr << id << "|" << " Target distance: " << targetVec.length << endl;
+
+            if (targetVec.length > podCollisionRadius)
                 cout << targetNextLoc.x << " " << targetNextLoc.y << " " << (angleToTarget < M_PI_2 ? 80 : 100) << endl;
             else
                 cout << targetNextLoc.x << " " << targetNextLoc.y << " SHIELD" << endl;
             return;
         }
-        
+       
         //Is a hare
         if (coolDown > 0)
             --coolDown;
         
-        UpdatePodPhysics(checkpoints);
-
         cerr << id << "|" << "Next checkpoint angle: " << angleToCheckpoint << endl; 
 
         CalculateThrust();  
@@ -169,14 +170,16 @@ struct Pod{
             cp = &checkpoints[(nextCheckpointId + 1) % checkpoints.size()];
         }
         cerr << id << "|" << " e1 length: " << Vec(e1.x - x, e1.y - y).length << " e2 length: " << Vec(e2.x - x, e2.y - y).length << " cd: " << coolDown << endl;
-        if (!coolDown && (Vec(e1.x - x, e1.y - y).length < podCollisionRadius || Vec(e2.x - x, e2.y - y).length < podCollisionRadius)){
+        if (!coolDown && (Vec(e1.x - x + vx + e1.vx, e1.y - y + vy + e1.vx).length < podCollisionRadius || Vec(e2.x - x + vx + e2.vx, e2.y - y + vy + e2.vy).length < podCollisionRadius)){
             cerr << id << "|" << "Potential collision detected" << endl;
             cout << cp->x << " " << cp->y << " SHIELD" << endl;            
             coolDown = shieldCoolDown; // Use a cooldown to avoid be with the shield on for a long time
         }
         else{
-            if (!boostUsed && nextCheckpointDist > 2000.f && angleToCheckpoint < 0.2f)
+            if (!coolDown && !palPod.isUsingBoost && !boostUsed && nextCheckpointDist > 2000.f && angleToCheckpoint < 0.2f)
             { 
+                isUsingBoost = true;
+                palPod.coolDown = boostCoolDown;
                 cout << cp->x << " " << cp->y << " BOOST" << endl;
                 boostUsed = true;
             }
@@ -189,8 +192,8 @@ struct Pod{
                 else{ //Aim to the optimal point of the checkpoint according its next checkpoint
                     cerr << id << "|" << "Trajectory anticipation" << endl;                
                     const CheckPoint* nextCheckpoint = &checkpoints[(nextCheckpointId + 1) % checkpoints.size()];
-                    int xC = cp->x > nextCheckpoint->x ? -300 : 300;
-                    int yC = cp->y > nextCheckpoint->y ? -300 : 300;
+                    int xC = cp->x > nextCheckpoint->x ? -200 : 200;
+                    int yC = cp->y > nextCheckpoint->y ? -200 : 200;
                     cout << cp->x + xC << " " << cp->y + yC << " " << thrust << endl;
                 }                            
             }
@@ -209,10 +212,12 @@ struct Pod{
     int id;
     int thrust;
     Vec velocity;
+    Vec direction;
     float nextCheckpointDist;
-    int coolDown = 20;
-    bool boostUsed = false;
-    bool isWolf = false;
+    int coolDown = 5;
+    bool boostUsed = false; 
+    bool isUsingBoost = false; 
+    bool isAWolf = false;  
     float angleToCheckpoint;
 };
 
